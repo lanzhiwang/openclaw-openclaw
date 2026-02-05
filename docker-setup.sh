@@ -3,11 +3,24 @@ set -x
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# cd .
+# pwd
+# ROOT_DIR=/workspaces/openclaw-openclaw
+
 COMPOSE_FILE="$ROOT_DIR/docker-compose.yml"
+# COMPOSE_FILE=/workspaces/openclaw-openclaw/docker-compose.yml
+
 EXTRA_COMPOSE_FILE="$ROOT_DIR/docker-compose.extra.yml"
+# EXTRA_COMPOSE_FILE=/workspaces/openclaw-openclaw/docker-compose.extra.yml
+
 IMAGE_NAME="${OPENCLAW_IMAGE:-openclaw:local}"
+# IMAGE_NAME=openclaw:local
+
 EXTRA_MOUNTS="${OPENCLAW_EXTRA_MOUNTS:-}"
+# EXTRA_MOUNTS=
+
 HOME_VOLUME_NAME="${OPENCLAW_HOME_VOLUME:-}"
+# HOME_VOLUME_NAME=
 
 require_cmd() {
     if ! command -v "$1" >/dev/null 2>&1; then
@@ -23,24 +36,50 @@ if ! docker compose version >/dev/null 2>&1; then
 fi
 
 OPENCLAW_CONFIG_DIR="${OPENCLAW_CONFIG_DIR:-$HOME/.openclaw}"
+# OPENCLAW_CONFIG_DIR=/home/codespace/.openclaw
+
 OPENCLAW_WORKSPACE_DIR="${OPENCLAW_WORKSPACE_DIR:-$HOME/.openclaw/workspace}"
+# OPENCLAW_WORKSPACE_DIR=/home/codespace/.openclaw/workspace
 
 mkdir -p "$OPENCLAW_CONFIG_DIR"
+# mkdir -p /home/codespace/.openclaw
+
 mkdir -p "$OPENCLAW_WORKSPACE_DIR"
+# mkdir -p /home/codespace/.openclaw/workspace
 
 export OPENCLAW_CONFIG_DIR
+# export OPENCLAW_CONFIG_DIR
+
 export OPENCLAW_WORKSPACE_DIR
+# export OPENCLAW_WORKSPACE_DIR
+
 export OPENCLAW_GATEWAY_PORT="${OPENCLAW_GATEWAY_PORT:-18789}"
+# export OPENCLAW_GATEWAY_PORT=18789
+
 export OPENCLAW_BRIDGE_PORT="${OPENCLAW_BRIDGE_PORT:-18790}"
+# export OPENCLAW_BRIDGE_PORT=18790
+
 export OPENCLAW_GATEWAY_BIND="${OPENCLAW_GATEWAY_BIND:-lan}"
+# export OPENCLAW_GATEWAY_BIND=lan
+
 export OPENCLAW_IMAGE="$IMAGE_NAME"
+# export OPENCLAW_IMAGE=openclaw:local
+
 export OPENCLAW_DOCKER_APT_PACKAGES="${OPENCLAW_DOCKER_APT_PACKAGES:-}"
+# export OPENCLAW_DOCKER_APT_PACKAGES=
+
 export OPENCLAW_EXTRA_MOUNTS="$EXTRA_MOUNTS"
+# export OPENCLAW_EXTRA_MOUNTS=
+
 export OPENCLAW_HOME_VOLUME="$HOME_VOLUME_NAME"
+# export OPENCLAW_HOME_VOLUME=
 
 if [[ -z "${OPENCLAW_GATEWAY_TOKEN:-}" ]]; then
     if command -v openssl >/dev/null 2>&1; then
         OPENCLAW_GATEWAY_TOKEN="$(openssl rand -hex 32)"
+        # openssl rand -hex 32
+        # OPENCLAW_GATEWAY_TOKEN=bd74e769ab9ac08389cd2dae92a52161eb2052d64c0fba8e9ee5098ccc0a58f9
+
     else
         OPENCLAW_GATEWAY_TOKEN="$(
             python3 - <<'PY'
@@ -51,8 +90,11 @@ PY
     fi
 fi
 export OPENCLAW_GATEWAY_TOKEN
+# export OPENCLAW_GATEWAY_TOKEN
 
 COMPOSE_FILES=("$COMPOSE_FILE")
+# COMPOSE_FILES=("$COMPOSE_FILE")
+
 COMPOSE_ARGS=()
 
 write_extra_compose() {
@@ -119,18 +161,33 @@ fi
 for compose_file in "${COMPOSE_FILES[@]}"; do
     COMPOSE_ARGS+=("-f" "$compose_file")
 done
+# COMPOSE_ARGS+=("-f" "$compose_file")
+
 COMPOSE_HINT="docker compose"
+# COMPOSE_HINT='docker compose'
+
 for compose_file in "${COMPOSE_FILES[@]}"; do
     COMPOSE_HINT+=" -f ${compose_file}"
 done
+# COMPOSE_HINT+=' -f /workspaces/openclaw-openclaw/docker-compose.yml'
 
 ENV_FILE="$ROOT_DIR/.env"
+# ENV_FILE=/workspaces/openclaw-openclaw/.env
+
 upsert_env() {
     local file="$1"
+    # local file=/workspaces/openclaw-openclaw/.env
+
     shift
+
     local -a keys=("$@")
+    # keys=('OPENCLAW_CONFIG_DIR' 'OPENCLAW_WORKSPACE_DIR' 'OPENCLAW_GATEWAY_PORT' 'OPENCLAW_BRIDGE_PORT' 'OPENCLAW_GATEWAY_BIND' 'OPENCLAW_GATEWAY_TOKEN' 'OPENCLAW_IMAGE' 'OPENCLAW_EXTRA_MOUNTS' 'OPENCLAW_HOME_VOLUME' 'OPENCLAW_DOCKER_APT_PACKAGES')
+
     local tmp
     tmp="$(mktemp)"
+    # mktemp
+    # tmp=/tmp/tmp.7BslX5BzcP
+
     declare -A seen=()
 
     if [[ -f "$file" ]]; then
@@ -154,10 +211,20 @@ upsert_env() {
     for k in "${keys[@]}"; do
         if [[ -z "${seen[$k]:-}" ]]; then
             printf '%s=%s\n' "$k" "${!k-}" >>"$tmp"
+            # printf '%s=%s\n' OPENCLAW_CONFIG_DIR /home/codespace/.openclaw
+            # printf '%s=%s\n' OPENCLAW_WORKSPACE_DIR /home/codespace/.openclaw/workspace
+            # printf '%s=%s\n' OPENCLAW_BRIDGE_PORT 18790
+            # printf '%s=%s\n' OPENCLAW_GATEWAY_BIND lan
+            # printf '%s=%s\n' OPENCLAW_GATEWAY_TOKEN bd74e769ab9ac08389cd2dae92a52161eb2052d64c0fba8e9ee5098ccc0a58f9
+            # printf '%s=%s\n' OPENCLAW_IMAGE openclaw:local
+            # printf '%s=%s\n' OPENCLAW_EXTRA_MOUNTS ''
+            # printf '%s=%s\n' OPENCLAW_HOME_VOLUME ''
+            # printf '%s=%s\n' OPENCLAW_DOCKER_APT_PACKAGES ''
         fi
     done
 
     mv "$tmp" "$file"
+    # mv /tmp/tmp.7BslX5BzcP /workspaces/openclaw-openclaw/.env
 }
 
 upsert_env "$ENV_FILE" \
@@ -171,6 +238,7 @@ upsert_env "$ENV_FILE" \
     OPENCLAW_EXTRA_MOUNTS \
     OPENCLAW_HOME_VOLUME \
     OPENCLAW_DOCKER_APT_PACKAGES
+# upsert_env /workspaces/openclaw-openclaw/.env OPENCLAW_CONFIG_DIR OPENCLAW_WORKSPACE_DIR OPENCLAW_GATEWAY_PORT OPENCLAW_BRIDGE_PORT OPENCLAW_GATEWAY_BIND OPENCLAW_GATEWAY_TOKEN OPENCLAW_IMAGE OPENCLAW_EXTRA_MOUNTS OPENCLAW_HOME_VOLUME OPENCLAW_DOCKER_APT_PACKAGES
 
 echo "==> Building Docker image: $IMAGE_NAME"
 docker build \
@@ -178,6 +246,7 @@ docker build \
     -t "$IMAGE_NAME" \
     -f "$ROOT_DIR/Dockerfile" \
     "$ROOT_DIR"
+# docker build --build-arg OPENCLAW_DOCKER_APT_PACKAGES= -t openclaw:local -f /workspaces/openclaw-openclaw/Dockerfile /workspaces/openclaw-openclaw
 
 echo ""
 echo "==> Onboarding (interactive)"
@@ -188,7 +257,16 @@ echo "  - Gateway token: $OPENCLAW_GATEWAY_TOKEN"
 echo "  - Tailscale exposure: Off"
 echo "  - Install Gateway daemon: No"
 echo ""
+# ==> Onboarding (interactive)
+# When prompted:
+#   - Gateway bind: lan
+#   - Gateway auth: token
+#   - Gateway token: bd74e769ab9ac08389cd2dae92a52161eb2052d64c0fba8e9ee5098ccc0a58f9
+#   - Tailscale exposure: Off
+#   - Install Gateway daemon: No
+
 docker compose "${COMPOSE_ARGS[@]}" run --rm openclaw-cli onboard --no-install-daemon
+# docker compose -f /workspaces/openclaw-openclaw/docker-compose.yml run --rm openclaw-cli onboard --no-install-daemon
 
 echo ""
 echo "==> Provider setup (optional)"
@@ -199,10 +277,19 @@ echo "  ${COMPOSE_HINT} run --rm openclaw-cli channels add --channel telegram --
 echo "Discord (bot token):"
 echo "  ${COMPOSE_HINT} run --rm openclaw-cli channels add --channel discord --token <token>"
 echo "Docs: https://docs.openclaw.ai/channels"
+# ==> Provider setup (optional)
+# WhatsApp (QR):
+#   docker compose -f /workspaces/openclaw-openclaw/docker-compose.yml run --rm openclaw-cli channels login
+# Telegram (bot token):
+#   docker compose -f /workspaces/openclaw-openclaw/docker-compose.yml run --rm openclaw-cli channels add --channel telegram --token <token>
+# Discord (bot token):
+#   docker compose -f /workspaces/openclaw-openclaw/docker-compose.yml run --rm openclaw-cli channels add --channel discord --token <token>
+# Docs: https://docs.openclaw.ai/channels
 
 echo ""
 echo "==> Starting gateway"
 docker compose "${COMPOSE_ARGS[@]}" up -d openclaw-gateway
+# docker compose -f /workspaces/openclaw-openclaw/docker-compose.yml up -d openclaw-gateway
 
 echo ""
 echo "Gateway running with host port mapping."
@@ -214,3 +301,12 @@ echo ""
 echo "Commands:"
 echo "  ${COMPOSE_HINT} logs -f openclaw-gateway"
 echo "  ${COMPOSE_HINT} exec openclaw-gateway node dist/index.js health --token \"$OPENCLAW_GATEWAY_TOKEN\""
+# Gateway running with host port mapping.
+# Access from tailnet devices via the host's tailnet IP.
+# Config: /home/codespace/.openclaw
+# Workspace: /home/codespace/.openclaw/workspace
+# Token: bd74e769ab9ac08389cd2dae92a52161eb2052d64c0fba8e9ee5098ccc0a58f9
+
+# Commands:
+#   docker compose -f /workspaces/openclaw-openclaw/docker-compose.yml logs -f openclaw-gateway
+#   docker compose -f /workspaces/openclaw-openclaw/docker-compose.yml exec openclaw-gateway node dist/index.js health --token "bd74e769ab9ac08389cd2dae92a52161eb2052d64c0fba8e9ee5098ccc0a58f9"
