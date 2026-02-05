@@ -20,6 +20,7 @@ NC='\033[0m' # No Color
 DEFAULT_TAGLINE="All your chats, one OpenClaw."
 
 ORIGINAL_PATH="${PATH:-}"
+# ORIGINAL_PATH=/usr/local/rvm/gems/ruby-3.4.7/bin:/usr/local/rvm/gems/ruby-3.4.7@global/bin:/usr/local/rvm/rubies/ruby-3.4.7/bin:/vscode/bin/linux-x64/bdd88df003631aaa0bcbe057cb0a940b80a476fa/bin/remote-cli:/home/codespace/.local/bin:/home/codespace/.dotnet:/home/codespace/nvm/current/bin:/home/codespace/.php/current/bin:/home/codespace/.python/current/bin:/home/codespace/java/current/bin:/home/codespace/.ruby/current/bin:/home/codespace/.local/bin:/usr/local/python/current/bin:/usr/local/py-utils/bin:/usr/local/jupyter:/usr/local/oryx:/usr/local/go/bin:/go/bin:/usr/local/sdkman/bin:/usr/local/sdkman/candidates/java/current/bin:/usr/local/sdkman/candidates/gradle/current/bin:/usr/local/sdkman/candidates/maven/current/bin:/usr/local/sdkman/candidates/ant/current/bin:/usr/local/rvm/gems/default/bin:/usr/local/rvm/gems/default@global/bin:/usr/local/rvm/rubies/default/bin:/usr/local/share/rbenv/bin:/usr/local/php/current/bin:/opt/conda/bin:/usr/local/nvs:/usr/local/share/nvm/versions/node/v24.11.1/bin:/usr/local/hugo/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/share/dotnet:/home/codespace/.dotnet/tools:/usr/local/rvm/bin
 
 TMPFILES=()
 cleanup_tmpfiles() {
@@ -140,9 +141,14 @@ cleanup_openclaw_bin_conflict() {
 
 install_openclaw_npm() {
     local spec="$1"
+    # local spec=openclaw@latest
+
     local log
     log="$(mktempfile)"
+    # log=/tmp/tmp.PZSD2SB4Sk
+
     if ! SHARP_IGNORE_GLOBAL_LIBVIPS="$SHARP_IGNORE_GLOBAL_LIBVIPS" npm --loglevel "$NPM_LOGLEVEL" ${NPM_SILENT_FLAG:+$NPM_SILENT_FLAG} --no-fund --no-audit install -g "$spec" 2>&1 | tee "$log"; then
+        # SHARP_IGNORE_GLOBAL_LIBVIPS=1 npm --loglevel error --silent --no-fund --no-audit install -g openclaw@latest
         if grep -q "ENOTEMPTY: directory not empty, rename .*openclaw" "$log"; then
             echo -e "${WARN}→${NC} npm left a stale openclaw directory; cleaning and retrying..."
             cleanup_npm_openclaw_paths
@@ -249,7 +255,12 @@ append_holiday_taglines() {
     local today
     local month_day
     today="$(date -u +%Y-%m-%d 2>/dev/null || date +%Y-%m-%d)"
+    # date -u +%Y-%m-%d
+    # today=2026-02-05
+
     month_day="$(date -u +%m-%d 2>/dev/null || date +%m-%d)"
+    # date -u +%m-%d
+    # month_day=02-05
 
     case "$month_day" in
     "01-01") TAGLINES+=("$HOLIDAY_NEW_YEAR") ;;
@@ -293,6 +304,8 @@ map_legacy_env "OPENCLAW_INSTALL_SH_NO_RUN" "CLAWDBOT_INSTALL_SH_NO_RUN"
 pick_tagline() {
     append_holiday_taglines
     local count=${#TAGLINES[@]}
+    # local count=65
+
     if [[ "$count" -eq 0 ]]; then
         echo "$DEFAULT_TAGLINE"
         return
@@ -304,27 +317,60 @@ pick_tagline() {
             return
         fi
     fi
+
     local idx=$((RANDOM % count))
+    # local idx=63
+
     echo "${TAGLINES[$idx]}"
 }
 
 TAGLINE=$(pick_tagline)
+# TAGLINE='Think different. Actually think.'
 
 NO_ONBOARD=${OPENCLAW_NO_ONBOARD:-0}
+# NO_ONBOARD=0
+
 NO_PROMPT=${OPENCLAW_NO_PROMPT:-0}
+# NO_PROMPT=0
+
 DRY_RUN=${OPENCLAW_DRY_RUN:-0}
+# DRY_RUN=0
+
 INSTALL_METHOD=${OPENCLAW_INSTALL_METHOD:-}
+# INSTALL_METHOD=
+
 OPENCLAW_VERSION=${OPENCLAW_VERSION:-latest}
+# OPENCLAW_VERSION=latest
+
 USE_BETA=${OPENCLAW_BETA:-0}
+# USE_BETA=0
+
 GIT_DIR_DEFAULT="${HOME}/openclaw"
+# GIT_DIR_DEFAULT=/home/codespace/openclaw
+
 GIT_DIR=${OPENCLAW_GIT_DIR:-$GIT_DIR_DEFAULT}
+# GIT_DIR=/home/codespace/openclaw
+
 GIT_UPDATE=${OPENCLAW_GIT_UPDATE:-1}
+# GIT_UPDATE=1
+
 SHARP_IGNORE_GLOBAL_LIBVIPS="${SHARP_IGNORE_GLOBAL_LIBVIPS:-1}"
+# SHARP_IGNORE_GLOBAL_LIBVIPS=1
+
 NPM_LOGLEVEL="${OPENCLAW_NPM_LOGLEVEL:-error}"
+# NPM_LOGLEVEL=error
+
 NPM_SILENT_FLAG="--silent"
+# NPM_SILENT_FLAG=--silent
+
 VERBOSE="${OPENCLAW_VERBOSE:-0}"
+# VERBOSE=0
+
 OPENCLAW_BIN=""
+# OPENCLAW_BIN=
+
 HELP=0
+# HELP=0
 
 print_usage() {
     cat <<EOF
@@ -463,6 +509,8 @@ prompt_choice() {
 
 detect_openclaw_checkout() {
     local dir="$1"
+    # local dir=/workspaces/openclaw-openclaw/learn
+
     if [[ ! -f "$dir/package.json" ]]; then
         return 1
     fi
@@ -488,6 +536,7 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
 elif [[ "$OSTYPE" == "linux-gnu"* ]] || [[ -n "${WSL_DISTRO_NAME:-}" ]]; then
     OS="linux"
 fi
+# OS=linux
 
 if [[ "$OS" == "unknown" ]]; then
     echo -e "${ERROR}Error: Unsupported operating system${NC}"
@@ -643,6 +692,9 @@ fix_npm_permissions() {
 
     local npm_prefix
     npm_prefix="$(npm config get prefix 2>/dev/null || true)"
+    # npm config get prefix
+    # npm_prefix=/usr/local/share/nvm/versions/node/v24.11.1
+
     if [[ -z "$npm_prefix" ]]; then
         return 0
     fi
@@ -684,15 +736,23 @@ resolve_openclaw_bin() {
 ensure_openclaw_bin_link() {
     local npm_root=""
     npm_root="$(npm root -g 2>/dev/null || true)"
+    # npm root -g
+    # npm_root=/usr/local/share/nvm/versions/node/v24.11.1/lib/node_modules
+
     if [[ -z "$npm_root" || ! -d "$npm_root/openclaw" ]]; then
         return 1
     fi
     local npm_bin=""
     npm_bin="$(npm_global_bin_dir || true)"
+    # npm_global_bin_dir
+    # npm_bin=/usr/local/share/nvm/versions/node/v24.11.1/bin
+
     if [[ -z "$npm_bin" ]]; then
         return 1
     fi
     mkdir -p "$npm_bin"
+    # mkdir -p /usr/local/share/nvm/versions/node/v24.11.1/bin
+
     if [[ ! -x "${npm_bin}/openclaw" ]]; then
         ln -sf "$npm_root/openclaw/dist/entry.js" "${npm_bin}/openclaw"
         echo -e "${WARN}→${NC} Installed openclaw bin link at ${INFO}${npm_bin}/openclaw${NC}"
@@ -844,6 +904,9 @@ resolve_openclaw_bin() {
     refresh_shell_command_cache
     local resolved=""
     resolved="$(type -P openclaw 2>/dev/null || true)"
+    # type -P openclaw
+    # resolved=/home/codespace/nvm/current/bin/openclaw
+
     if [[ -n "$resolved" && -x "$resolved" ]]; then
         echo "$resolved"
         return 0
@@ -961,6 +1024,9 @@ install_openclaw() {
 
     local resolved_version=""
     resolved_version="$(npm view "${package_name}@${OPENCLAW_VERSION}" version 2>/dev/null || true)"
+    # npm view openclaw@latest version
+    # resolved_version=2026.2.2-3
+
     if [[ -n "$resolved_version" ]]; then
         echo -e "${WARN}→${NC} Installing OpenClaw ${INFO}${resolved_version}${NC}..."
     else
@@ -972,8 +1038,11 @@ install_openclaw() {
     else
         install_spec="${package_name}@${OPENCLAW_VERSION}"
     fi
+    # install_spec=openclaw@latest
 
     if ! install_openclaw_npm "${install_spec}"; then
+        # install_openclaw_npm openclaw@latest
+
         echo -e "${WARN}→${NC} npm install failed; cleaning up and retrying..."
         cleanup_npm_openclaw_paths
         install_openclaw_npm "${install_spec}"
@@ -981,6 +1050,8 @@ install_openclaw() {
 
     if [[ "${OPENCLAW_VERSION}" == "latest" && "${package_name}" == "openclaw" ]]; then
         if ! resolve_openclaw_bin &>/dev/null; then
+            # resolve_openclaw_bin
+
             echo -e "${WARN}→${NC} npm install openclaw@latest failed; retrying openclaw@next"
             cleanup_npm_openclaw_paths
             install_openclaw_npm "openclaw@next"
@@ -988,6 +1059,7 @@ install_openclaw() {
     fi
 
     ensure_openclaw_bin_link || true
+    # ensure_openclaw_bin_link
 
     echo -e "${SUCCESS}✓${NC} OpenClaw installed"
 }
@@ -1125,6 +1197,8 @@ main() {
 
     local detected_checkout=""
     detected_checkout="$(detect_openclaw_checkout "$PWD" || true)"
+    # detect_openclaw_checkout /workspaces/openclaw-openclaw/learn
+    # detected_checkout=
 
     if [[ -z "$INSTALL_METHOD" && -n "$detected_checkout" ]]; then
         if ! is_promptable; then
@@ -1157,6 +1231,7 @@ EOF
     if [[ -z "$INSTALL_METHOD" ]]; then
         INSTALL_METHOD="npm"
     fi
+    # INSTALL_METHOD=npm
 
     if [[ "$INSTALL_METHOD" != "npm" && "$INSTALL_METHOD" != "git" ]]; then
         echo -e "${ERROR}Error: invalid --install-method: ${INSTALL_METHOD}${NC}"
@@ -1212,6 +1287,7 @@ EOF
     else
         # Clean up git wrapper if switching to npm
         if [[ -x "$HOME/.local/bin/openclaw" ]]; then
+            # /home/codespace/.local/bin/openclaw
             echo -e "${WARN}→${NC} Removing git wrapper (switching to npm)..."
             rm -f "$HOME/.local/bin/openclaw"
             echo -e "${SUCCESS}✓${NC} git wrapper removed"
@@ -1230,12 +1306,19 @@ EOF
     fi
 
     OPENCLAW_BIN="$(resolve_openclaw_bin || true)"
+    # resolve_openclaw_bin
+    # OPENCLAW_BIN=/home/codespace/nvm/current/bin/openclaw
+
 
     # PATH warning: installs can succeed while the user's login shell still lacks npm's global bin dir.
     local npm_bin=""
     npm_bin="$(npm_global_bin_dir || true)"
+    # npm_global_bin_dir
+    # npm_bin=/usr/local/share/nvm/versions/node/v24.11.1/bin
+
     if [[ "$INSTALL_METHOD" == "npm" ]]; then
         warn_shell_path_missing_dir "$npm_bin" "npm global bin dir"
+        # warn_shell_path_missing_dir /usr/local/share/nvm/versions/node/v24.11.1/bin 'npm global bin dir'
     fi
     if [[ "$INSTALL_METHOD" == "git" ]]; then
         if [[ -x "$HOME/.local/bin/openclaw" ]]; then
@@ -1258,6 +1341,8 @@ EOF
 
     local installed_version
     installed_version=$(resolve_openclaw_version)
+    # resolve_openclaw_version
+    # installed_version=2026.2.2-3
 
     echo ""
     if [[ -n "$installed_version" ]]; then
@@ -1385,6 +1470,8 @@ EOF
 
     if command -v openclaw &>/dev/null; then
         local claw="${OPENCLAW_BIN:-}"
+        # local claw=/home/codespace/nvm/current/bin/openclaw
+
         if [[ -z "$claw" ]]; then
             claw="$(resolve_openclaw_bin || true)"
         fi
@@ -1412,6 +1499,12 @@ EOF
 
 if [[ "${OPENCLAW_INSTALL_SH_NO_RUN:-0}" != "1" ]]; then
     parse_args "$@"
+    # parse_args --no-onboard
+
     configure_verbose
+    # configure_verbose
+
     main
+    # main
+
 fi
