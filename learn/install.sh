@@ -1,4 +1,5 @@
 #!/bin/bash
+set -x
 set -euo pipefail
 
 # OpenClaw Installer for macOS and Linux
