@@ -20,7 +20,7 @@ RUN if [ -n "$OPENCLAW_DOCKER_APT_PACKAGES" ]; then \
       apt-get clean && \
       rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*; \
     fi
-[ 5/14] RUN
+# [ 5/14] RUN
 # if [ -n "" ]; then
 #     apt-get update &&
 #     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends  &&
