@@ -20,7 +20,7 @@ NC='\033[0m' # No Color
 DEFAULT_TAGLINE="All your chats, one OpenClaw."
 
 ORIGINAL_PATH="${PATH:-}"
-# ORIGINAL_PATH=/usr/local/rvm/gems/ruby-3.4.7/bin:/usr/local/rvm/gems/ruby-3.4.7@global/bin:/usr/local/rvm/rubies/ruby-3.4.7/bin:/vscode/bin/linux-x64/bdd88df003631aaa0bcbe057cb0a940b80a476fa/bin/remote-cli:/home/codespace/.local/bin:/home/codespace/.dotnet:/home/codespace/nvm/current/bin:/home/codespace/.php/current/bin:/home/codespace/.python/current/bin:/home/codespace/java/current/bin:/home/codespace/.ruby/current/bin:/home/codespace/.local/bin:/usr/local/python/current/bin:/usr/local/py-utils/bin:/usr/local/jupyter:/usr/local/oryx:/usr/local/go/bin:/go/bin:/usr/local/sdkman/bin:/usr/local/sdkman/candidates/java/current/bin:/usr/local/sdkman/candidates/gradle/current/bin:/usr/local/sdkman/candidates/maven/current/bin:/usr/local/sdkman/candidates/ant/current/bin:/usr/local/rvm/gems/default/bin:/usr/local/rvm/gems/default@global/bin:/usr/local/rvm/rubies/default/bin:/usr/local/share/rbenv/bin:/usr/local/php/current/bin:/opt/conda/bin:/usr/local/nvs:/usr/local/share/nvm/versions/node/v24.11.1/bin:/usr/local/hugo/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/share/dotnet:/home/codespace/.dotnet/tools:/usr/local/rvm/bin
+# ORIGINAL_PATH=/root/anaconda3/bin:/root/anaconda3/condabin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
 
 TMPFILES=()
 cleanup_tmpfiles() {
@@ -346,10 +346,10 @@ USE_BETA=${OPENCLAW_BETA:-0}
 # USE_BETA=0
 
 GIT_DIR_DEFAULT="${HOME}/openclaw"
-# GIT_DIR_DEFAULT=/home/codespace/openclaw
+# GIT_DIR_DEFAULT=/root/openclaw
 
 GIT_DIR=${OPENCLAW_GIT_DIR:-$GIT_DIR_DEFAULT}
-# GIT_DIR=/home/codespace/openclaw
+# GIT_DIR=/root/openclaw
 
 GIT_UPDATE=${OPENCLAW_GIT_UPDATE:-1}
 # GIT_UPDATE=1
@@ -570,6 +570,7 @@ install_homebrew() {
 # Check Node.js version
 check_node() {
     if command -v node &>/dev/null; then
+        # command -v node
         NODE_VERSION=$(node -v | cut -d'v' -f2 | cut -d'.' -f1)
         if [[ "$NODE_VERSION" -ge 22 ]]; then
             echo -e "${SUCCESS}✓${NC} Node.js v$(node -v | cut -d'v' -f2) found"
@@ -595,11 +596,20 @@ install_node() {
         echo -e "${WARN}→${NC} Installing Node.js via NodeSource..."
         require_sudo
         if command -v apt-get &>/dev/null; then
+            # command -v apt-get
             local tmp
             tmp="$(mktempfile)"
             download_file "https://deb.nodesource.com/setup_22.x" "$tmp"
+            # download_file https://deb.nodesource.com/setup_22.x /tmp/tmp.zB1Hq2FlDR
+            # curl -fsSL --proto =https --tlsv1.2 --retry 3 --retry-delay 1 --retry-connrefused -o /tmp/tmp.zB1Hq2FlDR https://deb.nodesource.com/setup_22.x
+
             maybe_sudo -E bash "$tmp"
+            # maybe_sudo -E bash /tmp/tmp.zB1Hq2FlDR
+
             maybe_sudo apt-get install -y nodejs
+            # maybe_sudo apt-get install -y nodejs
+            # apt-get install -y nodejs
+
         elif command -v dnf &>/dev/null; then
             local tmp
             tmp="$(mktempfile)"
@@ -1109,6 +1119,12 @@ run_bootstrap_onboarding_if_needed() {
     fi
 
     local config_path="${OPENCLAW_CONFIG_PATH:-$HOME/.openclaw/openclaw.json}"
+    # local config_path=/root/.openclaw/openclaw.json
+
+    # [[ -f /root/.openclaw/openclaw.json ]]
+    # [[ -f /root/.clawdbot/clawdbot.json ]]
+    # [[ -f /root/.moltbot/moltbot.json ]]
+    # [[ -f /root/.moldbot/moldbot.json ]]
     if [[ -f "${config_path}" || -f "$HOME/.clawdbot/clawdbot.json" || -f "$HOME/.moltbot/moltbot.json" || -f "$HOME/.moldbot/moldbot.json" ]]; then
         return
     fi
@@ -1197,7 +1213,7 @@ main() {
 
     local detected_checkout=""
     detected_checkout="$(detect_openclaw_checkout "$PWD" || true)"
-    # detect_openclaw_checkout /workspaces/openclaw-openclaw/learn
+    # detect_openclaw_checkout /root/huzhi/learn
     # detected_checkout=
 
     if [[ -z "$INSTALL_METHOD" && -n "$detected_checkout" ]]; then
@@ -1287,7 +1303,7 @@ EOF
     else
         # Clean up git wrapper if switching to npm
         if [[ -x "$HOME/.local/bin/openclaw" ]]; then
-            # /home/codespace/.local/bin/openclaw
+            # /root/.local/bin/openclaw
             echo -e "${WARN}→${NC} Removing git wrapper (switching to npm)..."
             rm -f "$HOME/.local/bin/openclaw"
             echo -e "${SUCCESS}✓${NC} git wrapper removed"
@@ -1307,18 +1323,18 @@ EOF
 
     OPENCLAW_BIN="$(resolve_openclaw_bin || true)"
     # resolve_openclaw_bin
-    # OPENCLAW_BIN=/home/codespace/nvm/current/bin/openclaw
+    # OPENCLAW_BIN=/usr/bin/openclaw
 
 
     # PATH warning: installs can succeed while the user's login shell still lacks npm's global bin dir.
     local npm_bin=""
     npm_bin="$(npm_global_bin_dir || true)"
     # npm_global_bin_dir
-    # npm_bin=/usr/local/share/nvm/versions/node/v24.11.1/bin
+    # npm_bin=/usr/bin
 
     if [[ "$INSTALL_METHOD" == "npm" ]]; then
         warn_shell_path_missing_dir "$npm_bin" "npm global bin dir"
-        # warn_shell_path_missing_dir /usr/local/share/nvm/versions/node/v24.11.1/bin 'npm global bin dir'
+        # warn_shell_path_missing_dir /usr/bin 'npm global bin dir'
     fi
     if [[ "$INSTALL_METHOD" == "git" ]]; then
         if [[ -x "$HOME/.local/bin/openclaw" ]]; then
@@ -1342,7 +1358,7 @@ EOF
     local installed_version
     installed_version=$(resolve_openclaw_version)
     # resolve_openclaw_version
-    # installed_version=2026.2.2-3
+    # installed_version=2026.2.3-1
 
     echo ""
     if [[ -n "$installed_version" ]]; then
@@ -1440,6 +1456,8 @@ EOF
             echo -e "Skipping onboard (requested). Run ${INFO}openclaw onboard${NC} later."
         else
             local config_path="${OPENCLAW_CONFIG_PATH:-$HOME/.openclaw/openclaw.json}"
+            # local config_path=/root/.openclaw/openclaw.json
+
             if [[ -f "${config_path}" || -f "$HOME/.clawdbot/clawdbot.json" || -f "$HOME/.moltbot/moltbot.json" || -f "$HOME/.moldbot/moldbot.json" ]]; then
                 echo -e "Config already present; running doctor..."
                 run_doctor
@@ -1451,6 +1469,8 @@ EOF
             echo ""
             if [[ -r /dev/tty && -w /dev/tty ]]; then
                 local claw="${OPENCLAW_BIN:-}"
+                # local claw=/usr/bin/openclaw
+
                 if [[ -z "$claw" ]]; then
                     claw="$(resolve_openclaw_bin || true)"
                 fi
@@ -1461,6 +1481,8 @@ EOF
                 fi
                 exec </dev/tty
                 exec "$claw" onboard
+                # exec /usr/bin/openclaw onboard
+
             fi
             echo -e "${WARN}→${NC} No TTY available; skipping onboarding."
             echo -e "Run ${INFO}openclaw onboard${NC} later."
